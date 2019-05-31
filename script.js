@@ -21,6 +21,10 @@ var brickOffsetLeft = 30;
 var score = 0;
 var lives = 3;
 var mySound;
+var actualPlayer;
+var ranking;
+var actualScore = 0;
+var playerScore = {name : "", score : 0};
 
 var bricks = [];
 for (c=0; c<brickColumnCount; c++) {
@@ -43,7 +47,7 @@ function drawBricks() {
 				bricks[c][r].y = brickY;
 				ctx.beginPath();
 				ctx.rect(brickX, brickY, brickWidth, brickHeight);
-				ctx.fillStyle = "#0095DD";
+				ctx.fillStyle = "#00CD00";
 				ctx.fill();
 				ctx.closePath();
 			}
@@ -72,7 +76,7 @@ function keyUpHandler(e) {
 function drawBall() {
 	ctx.beginPath();
 	ctx.arc(x, y, ballRadius, 0, Math.PI*2);
-	ctx.fillStyle = "#0095DD";
+	ctx.fillStyle = "#000000";
 	ctx.fill();
 	ctx.closePath();
 }
@@ -80,7 +84,7 @@ function drawBall() {
 function drawPaddle() {
 	ctx.beginPath();
 	ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
-	ctx.fillStyle = "#0095DD";
+	ctx.fillStyle = "#551A8B";
 	ctx.fill();
 	ctx.closePath();
 }
@@ -97,7 +101,9 @@ function collisionDetection() {
 					score++;
 					if(score == brickRowCount*brickColumnCount) {
 						alert("YOU WIN, CONGRADULATIONS!");
-						document.location.reload();
+						saveScore();
+						showRanking();
+						//document.location.reload();
 					}
 				}
 			}
@@ -159,7 +165,8 @@ function draw() {
 			lives--;
 			if(!lives) {
 				alert("GAME OVER!");
-				document.location.reload();
+				saveScore();
+				showRanking();
 
 			} else {
 				x = canvas.width/2;
@@ -196,4 +203,44 @@ function mouseMoveHandler(e) {
 	}
 }
 
-draw();
+function saveScore() {
+
+    // Retrieving data:
+    var jsonFile = localStorage.getItem("rankingJSON4");
+    playerScore.name = actualPlayer
+    playerScore.score = actualScore;
+
+    if (jsonFile != null) {
+        ranking = JSON.parse(jsonFile);
+    } else { //Qdo ainda não existe ranking
+        ranking = {players:[]};
+    }
+    var pontuacoes = ranking.players;
+    pontuacoes.push(playerScore);
+    ranking.players = pontuacoes;
+
+    var objJSON = JSON.stringify(ranking);
+    localStorage.setItem("rankingJSON4", objJSON);
+
+}
+
+function showRanking() {
+    var text = "<h2> Ranking: </h2>";
+    var pontuacoes = ranking.players;
+
+    for (i in pontuacoes) {
+        text = text + "Nome: " + pontuacoes[i].name + " - Pontos: " + pontuacoes[i].score + "<br>";
+    }
+
+    document.getElementById("ranking").innerHTML = text;
+}
+
+
+function init() {
+    actualPlayer = document.getElementById("player").value;
+    document.getElementById("player").value = "";
+    document.getElementById("iniciar").disabled = true;
+    draw();
+}
+
+
